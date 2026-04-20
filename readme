@@ -1,0 +1,135 @@
+
+
+# README – Scanner de Ports (LAN uniquement)
+
+ 1)Présentation
+Ce projet est un scanner de ports TCP conçu pour fonctionner uniquement sur le réseau local (LAN).  
+Il permet à l’utilisateur de tester une machine de son réseau et d’identifier les ports ouverts, tout en garantissant une utilisation sécurisée et limitée à l’environnement local.
+
+Le projet est divisé en plusieurs modules :
+- main.py : programme principal, interface utilisateur et orchestration du scan.
+- utils.py : fonctions utilitaires pour la validation des IP et la détection du réseau local.
+- scanner.py : logique de test des ports TCP.
+- ports.py : association des numéros de ports aux services connus.
+
+ 2)Architecture du projet
+
+
+Projet Scanner de Ports
+ ├── main.py        # Interface utilisateur et exécution du scan
+ ├── utils.py       # Fonctions de validation et réseau local
+ ├── scanner.py     # Test des ports TCP
+ ├── ports.py       # Table de correspondance ports/services
+ └── README.md      # Documentation du projet
+
+
+
+3) Modules et fonctions
+
+ 1. utils.py – Validation et réseau local
+- valider_ip(ip: str) -> bool 
+  Vérifie si une adresse IP est valide au format IPv4.
+- obtenir_ip_locale() -> str  
+  Récupère l’adresse IP locale de la machine.
+- **obtenir_reseau_local() -> str  
+  Détecte le préfixe du réseau local (exemple : 192.168.1.).
+- **est_dans_reseau_local(ip: str) -> bool 
+  Vérifie si une IP appartient au même réseau local que la machine.
+- **afficher_infos_reseau() -> None 
+  Affiche les informations réseau locales (IP, plage autorisée).
+
+
+ 2. scanner.py – Test des ports TCP
+- scanner_port(ip: str, port: int, delai: float = 0.3) -> bool  
+  Teste si un port est ouvert sur une IP donnée.  
+  Retourne :
+  - True → port ouvert
+  - False → port fermé ou inaccessible
+
+Méthode :
+- Crée un socket TCP.
+- Définit un délai d’attente (timeout).
+- Utilise connect_ex pour tenter la connexion.
+- Ferme le socket après le test.
+
+
+ 3. main.py – Programme principal
+- afficher_banniere()  
+  Affiche une bannière stylisée au démarrage.
+- afficher_barre_progression(current, total, largeur=40)  
+  Génère une barre de progression dynamique pendant le scan.
+- demander_ip()  
+  Demande et valide une IP locale (refuse les IP hors réseau).
+- demander_plage_ports()  
+  Demande et valide une plage de ports au format début-fin.
+- main()  
+  - Affiche les infos réseau.
+  - Récupère l’IP cible et la plage de ports.
+  - Affiche un récapitulatif avant lancement.
+  - Lance le scan port par port.
+  - Affiche les résultats finaux (ports ouverts/fermés).
+  - Propose à l’utilisateur de sauvegarder les résultats dans un fichier texte :
+    - Si l’utilisateur accepte, il entre le nom du fichier (exemple : scan_avril.txt).
+    - Les résultats sont écrits dans ce fichier.
+    - Si l’utilisateur refuse, le programme termine sans sauvegarde.
+
+4) Utilisation
+
+### Mode interactif
+```bash
+python main.py
+```
+→ L’utilisateur saisit l’IP et la plage de ports directement dans le terminal.  
+À la fin du scan, le programme demande si l’utilisateur souhaite sauvegarder les résultats dans un fichier texte.
+
+5) Mode avec arguments
+bash
+py main.py --ip 192.168.1.10 --ports 20-100
+
+→ Le scan démarre automatiquement avec les paramètres fournis.  
+À la fin, la même option de sauvegarde est proposée.
+
+Exemple de sortie
+
+```
+╔══════════════════════════════════════════════════════════╗
+║   SCANNER DE PORTS - Réseau Local                        ║
+╠══════════════════════════════════════════════════════════╣
+║   Version sécurisée - uniquement LAN                     ║
+╚══════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────┐
+│  INFORMATIONS RÉSEAU                                     │
+├──────────────────────────────────────────────────────────┤
+│  Votre IP locale     : 192.168.1.45                      │
+│  Votre réseau        : 192.168.1.xxx                     │
+│  Plage autorisée     : 192.168.1.1 à 192.168.1.254       │
+└──────────────────────────────────────────────────────────┘
+
+RÉCAPITULATIF DU SCAN
+Cible : 192.168.1.10
+Plage : 20 → 100
+Nombre de ports : 81
+
+SCAN EN COURS...
+[██████──────────────]  25.00% (20/81) | Test port 21... OUVERT → FTP
+[████████────────────]  50.00% (40/81) | Test port 80... OUVERT → HTTP
+...
+
+RÉSULTATS DU SCAN
+2 port(s) ouvert(s) trouvé(s) :
+   Port 21 : FTP
+   Port 80 : HTTP
+
+Scan terminé.
+
+Souhaitez-vous sauvegarder les résultats dans un fichier texte ? (o/n) : o
+Entrez le nom du fichier (ex: resultats.txt) : scan_avril.txt
+Les résultats ont été sauvegardés dans le fichier scan_avril.txt.
+
+
+ Bonnes pratiques de sécurité
+- Ce scanner est conçu pour un usage strictement local.  
+- Ne pas l’utiliser pour cibler des IP externes ou des réseaux publics.  
+- Respecter les règles de sécurité et de confidentialité de votre organisation.  
+- Limiter les plages de ports pour éviter une surcharge réseau.
